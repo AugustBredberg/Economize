@@ -1,0 +1,35 @@
+﻿@page "/testpage"
+@using BlazorApp.Data
+@inject IndiceService IndiceService
+
+
+<PageTitle>Test Page</PageTitle>
+
+<h1>The test page :) </h1>
+
+<p>This component demonstrates creating a new page and routing to it</p>
+<button @onclick="ToggleThing">Button</button>
+
+<p> @ShowThing</p>
+
+
+@code {
+
+    public bool ShowThing { get; set; }
+
+
+    private void ToggleThing()
+    {
+        ShowThing = !ShowThing;
+        StateHasChanged();
+    }
+
+    private Indice? indice;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //indice = await IndiceService.GetIndiceOpenCloseAsync(DateTime.Now.AddDays(-4));
+        indice = await IndiceService.GetIndicePreviousCloseAsync();
+    }
+
+}
