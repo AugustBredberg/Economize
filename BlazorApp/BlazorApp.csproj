@@ -6,4 +6,13 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Shared\Tiles\IndiceTile.razor.css" />
+    <None Remove="Shared\Tiles\MarketIndexTile.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Shared\Tiles\MarketIndexTile.razor.css" />
+  </ItemGroup>
+
 </Project>

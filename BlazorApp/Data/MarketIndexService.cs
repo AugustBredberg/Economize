@@ -7,10 +7,10 @@ using System;
 
 namespace BlazorApp.Data
 {
-    public class IndiceService
+    public class MarketIndexService
     {
 
-        private Indice? indice = new Indice();
+        private MarketIndex? marketIndex = new MarketIndex();
         private HttpClient httpClient;
 
         private IMemoryCache _cache;
@@ -18,30 +18,29 @@ namespace BlazorApp.Data
         private string apiKey = "Zu3n5JL4sYt8utwlJ2hcsTiDJkvp_4xW";
 
 
-        public IndiceService(IHttpClientFactory clientFactory, IMemoryCache memoryCache)
+        public MarketIndexService(IHttpClientFactory clientFactory, IMemoryCache memoryCache)
         {
             this.httpClient = clientFactory.CreateClient();
             this._cache = memoryCache;
         }
 
-        public async Task<Indice> GetIndicePreviousCloseAsync(string indiceTicker = "I:OMXS30")
+        public async Task<MarketIndex> GetMarketIndexPreviousCloseAsync(string marketIndexTicker = "I:OMXS30")
         {
             try
             {
-                // Try to get today's IndiceTicker from cache
-                if (_cache.TryGetValue("PreviousClose_" + indiceTicker, out indice))
+                // Try to get today's MarketIndexTicker from cache
+                if (_cache.TryGetValue("PreviousClose_" + marketIndexTicker, out marketIndex))
                 {
-                    if (indice is null)
+                    if (marketIndex is null)
                     {
                         throw new Exception("Cached value was null");
                     }
-                    else return indice;
+                    else return marketIndex;
                 }
 
 
                 // Build request URI
-                // https://api.polygon.io/v2/aggs/ticker/I:OMXS30/prev?apiKey=Zu3n5JL4sYt8utwlJ2hcsTiDJkvp_4xW
-                var uri = $"https://api.polygon.io/v2/aggs/ticker/{indiceTicker}/prev?apiKey={apiKey}";
+                var uri = $"https://api.polygon.io/v2/aggs/ticker/{marketIndexTicker}/prev?apiKey={apiKey}";
 
 
                 // Send request
@@ -50,17 +49,17 @@ namespace BlazorApp.Data
                 if (response.IsSuccessStatusCode)
                 {
                     using var responseStream = await response.Content.ReadAsStreamAsync();
-                    var previousCloseIndiceResponse = await JsonSerializer.DeserializeAsync<PreviousCloseIndiceResponse>(responseStream);
+                    var previousCloseMarketIndexResponse = await JsonSerializer.DeserializeAsync<PreviousCloseMarketIndexResponse>(responseStream);
 
-                    if (previousCloseIndiceResponse is null) throw new Exception("Deserialization failed");
+                    if (previousCloseMarketIndexResponse is null) throw new Exception("Deserialization failed");
                     else
                     {
-                        indice = previousCloseIndiceResponse.ConvertToIndice();
-                        indice.IndiceTicker = indiceTicker;
+                        marketIndex = previousCloseMarketIndexResponse.ConvertToMarketIndex();
+                        marketIndex.MarketIndexTicker = marketIndexTicker;
 
-                        // Cache todays IndiceTicker response
-                        _cache.Set("PreviousClose_" + indiceTicker, indice);
-                        return indice;
+                        // Cache todays MarketIndexTicker response
+                        _cache.Set("PreviousClose_" + marketIndexTicker, marketIndex);
+                        return marketIndex;
                     }
                 }
                 throw new Exception("GET previous close request failed, code: " + response.StatusCode);
@@ -69,11 +68,11 @@ namespace BlazorApp.Data
             {
                 // Graceful failure
                 Console.WriteLine(ex.ToString());
-                return new Indice();
+                return new MarketIndex();
             }
         }
 
-        public async Task<Indice> GetIndiceOpenCloseAsync(DateTime? date, string indiceTicker = "I:OMXS30")
+        public async Task<MarketIndex> GetMarketIndexOpenCloseAsync(DateTime? date, string marketIndexTicker = "I:OMXS30")
         {
             try
             {
@@ -81,19 +80,19 @@ namespace BlazorApp.Data
                 if (date != null) currentDateTime = (DateTime)date;
                 var parsedDate = ParseDateTime(currentDateTime);
 
-                // Try to get today's IndiceTicker from cache
-                if (_cache.TryGetValue("OpenClose_" + indiceTicker + parsedDate, out indice))
+                // Try to get today's MarketIndexTicker from cache
+                if (_cache.TryGetValue("OpenClose_" + marketIndexTicker + parsedDate, out marketIndex))
                 {
-                    if(indice is null)
+                    if(marketIndex is null)
                     {
                         throw new Exception("Cached value was null");
                     }
-                    else return indice;
+                    else return marketIndex;
                 }
                     
 
                 // Build request URI
-                var uri = $"https://api.polygon.io/v1/open-close/{indiceTicker}/{parsedDate}?apiKey={apiKey}";
+                var uri = $"https://api.polygon.io/v1/open-close/{marketIndexTicker}/{parsedDate}?apiKey={apiKey}";
 
                 // Send request
                 var response = await httpClient.GetAsync(uri);
@@ -101,14 +100,14 @@ namespace BlazorApp.Data
                 if (response.IsSuccessStatusCode)
                 {
                     using var responseStream = await response.Content.ReadAsStreamAsync();
-                    indice = await JsonSerializer.DeserializeAsync<Indice>(responseStream);
+                    marketIndex = await JsonSerializer.DeserializeAsync<MarketIndex>(responseStream);
 
-                    if (indice is null) throw new Exception("Deserialization failed");
+                    if (marketIndex is null) throw new Exception("Deserialization failed");
                     else
                     {
-                        // Cache todays IndiceTicker response
-                        _cache.Set("OpenClose_" + indiceTicker + parsedDate, indice);
-                        return indice;
+                        // Cache todays MarketIndexTicker response
+                        _cache.Set("OpenClose_" + marketIndexTicker + parsedDate, marketIndex);
+                        return marketIndex;
                     }
                 }
                 throw new Exception("GET open-close request failed, code: " + response.StatusCode);
@@ -118,7 +117,7 @@ namespace BlazorApp.Data
             {
                 // Graceful failure
                 Console.WriteLine(ex.ToString());
-                return new Indice();
+                return new MarketIndex();
             }
         }
 

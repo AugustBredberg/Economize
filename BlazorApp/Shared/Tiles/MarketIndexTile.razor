@@ -1,0 +1,32 @@
+﻿@using BlazorApp.Data;
+
+<div class="tile">
+    <h3> @MarketIndex.MarketIndexTicker </h3>
+
+    <p class="@(MarketIndex.Close > MarketIndex.Open ? "positiveColor" : "negativeColor")"> @(CalcMarketDayPercent(MarketIndex.Close, MarketIndex.Open)) </p>
+    <p> Open: @MarketIndex.Open </p>
+    <p> High: @MarketIndex.High </p>
+    <p> Low: @MarketIndex.Low </p>
+
+</div>
+
+@code {
+    // Demonstrates how a parent component can supply parameters
+    [Parameter]
+    public MarketIndex MarketIndex { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+    } 
+
+
+    private double CalcMarketDayPercent(double close, double open){
+        double change = close / open;
+        double changePercent = 1 - change;
+        double percentage = changePercent * -100;
+
+        // Round result to 3 decimals
+        return Math.Round(percentage, 3);
+    }
+}

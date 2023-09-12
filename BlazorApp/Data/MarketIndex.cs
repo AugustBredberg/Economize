@@ -2,10 +2,10 @@ using System.Text.Json.Serialization;
 
 namespace BlazorApp.Data
 {
-    public class Indice
+    public class MarketIndex
     {
         [JsonPropertyName("symbol")]
-        public string IndiceTicker { get; set; }
+        public string MarketIndexTicker { get; set; }
 
 
         [JsonPropertyName("open")]
@@ -40,7 +40,7 @@ namespace BlazorApp.Data
          */
     }
 
-    public class PreviousCloseIndiceResponseResult
+    public class PreviousCloseMarketIndexResponseResult
     {
         public string T { get; set; }
         public double o { get; set; }
@@ -50,22 +50,22 @@ namespace BlazorApp.Data
         public long t { get; set; }
     }
 
-    public class PreviousCloseIndiceResponse
+    public class PreviousCloseMarketIndexResponse
     {
-        public string IndiceTicker { get; set; }
+        public string ticker { get; set; }
         public int queryCount { get; set; }
-        public List<PreviousCloseIndiceResponseResult> results { get; set; }
+        public List<PreviousCloseMarketIndexResponseResult> results { get; set; }
         public string status { get; set; }
         public string request_id { get; set; }
         public int count { get; set; }
 
-        public Indice ConvertToIndice()
+        public MarketIndex ConvertToMarketIndex()
         {
-            PreviousCloseIndiceResponseResult result = this.results[0] ?? new PreviousCloseIndiceResponseResult();
+            PreviousCloseMarketIndexResponseResult result = this.results[0] ?? new PreviousCloseMarketIndexResponseResult();
 
-            return new Indice
+            return new MarketIndex
             {
-                IndiceTicker = this.IndiceTicker,
+                MarketIndexTicker = this.ticker,
                 Open = result.o,
                 Close = result.c,
                 High = result.c,
