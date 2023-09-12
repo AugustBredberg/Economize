@@ -1,0 +1,44 @@
+﻿@page "/marketindices"
+@using BlazorApp.Data
+@using BlazorApp.Shared.Tiles
+@inject MarketIndexService MarketIndexService
+
+
+<PageTitle>Market Indices</PageTitle>
+
+<h1>Market Indices </h1>
+
+<p>Yesterday's (or latest open market day's) market indices</p>
+
+@if (indices == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @foreach (var index in indices)
+    {
+        <MarketIndexTile MarketIndex=index ></MarketIndexTile>
+    }
+}
+ 
+
+@code {
+        
+    // StateHasChanged();
+
+    private List<MarketIndex>? indices;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var OMXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync();
+        var NDXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync("I:NDX");
+        var SPXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync("I:SPX");
+
+        indices = new List<MarketIndex>();
+        if (OMXIndex is not null && OMXIndex.Success) indices.Add(OMXIndex);
+        if (NDXIndex is not null && NDXIndex.Success) indices.Add(NDXIndex);
+        if (SPXIndex is not null && SPXIndex.Success) indices.Add(SPXIndex);
+    }
+
+}

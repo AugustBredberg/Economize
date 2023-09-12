@@ -17,6 +17,15 @@ namespace BlazorApp.Data
 
         private string apiKey = "Zu3n5JL4sYt8utwlJ2hcsTiDJkvp_4xW";
 
+        // Flag icons: https://www.flaticon.com/free-icon/sweden_197564?related_id=197564&origin=pack
+
+        static Dictionary<string, string> marketIndexLookup = new Dictionary<string, string>
+        {
+            {"I:OMXS30", "OMX"},
+            {"I:NDX", "NDX"},
+            {"I:SPX", "SPX"}
+        };
+
 
         public MarketIndexService(IHttpClientFactory clientFactory, IMemoryCache memoryCache)
         {
@@ -56,6 +65,7 @@ namespace BlazorApp.Data
                     {
                         marketIndex = previousCloseMarketIndexResponse.ConvertToMarketIndex();
                         marketIndex.MarketIndexTicker = marketIndexTicker;
+                        marketIndex.Success = true;
 
                         // Cache todays MarketIndexTicker response
                         _cache.Set("PreviousClose_" + marketIndexTicker, marketIndex);
@@ -106,6 +116,7 @@ namespace BlazorApp.Data
                     else
                     {
                         // Cache todays MarketIndexTicker response
+                        marketIndex.Success = true;
                         _cache.Set("OpenClose_" + marketIndexTicker + parsedDate, marketIndex);
                         return marketIndex;
                     }
@@ -118,6 +129,20 @@ namespace BlazorApp.Data
                 // Graceful failure
                 Console.WriteLine(ex.ToString());
                 return new MarketIndex();
+            }
+        }
+
+        public static string LookupMarketIndexTickerName(string marketIndexTicker)
+        {
+            if (marketIndexTicker is null) return "";
+            string result;
+            if (marketIndexLookup.TryGetValue(marketIndexTicker, out result))
+            {
+                return result;
+            }
+            else
+            {
+                return marketIndexTicker;
             }
         }
 

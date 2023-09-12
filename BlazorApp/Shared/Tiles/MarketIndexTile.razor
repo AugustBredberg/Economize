@@ -1,13 +1,36 @@
 ﻿@using BlazorApp.Data;
+@inject MarketIndexService MarketIndexService
 
 <div class="tile">
-    <h3> @MarketIndex.MarketIndexTicker </h3>
+    
+    <!-- Flag, TickerName and Close % -->
+    <div class="Row" style="width: auto;">
+        <div class="Column">
+            <img style="max-width: 60px;" src="images/@(MarketIndexService.LookupMarketIndexTickerName(MarketIndex.MarketIndexTicker)).png" />
+        </div>
+        <div class="Column">
+            <h3> @MarketIndexService.LookupMarketIndexTickerName(MarketIndex.MarketIndexTicker) </h3>
+        </div>
+        <div class="Column" style="width: 100%; text-align: right">
+            <span class="closeText @(MarketIndex.Close > MarketIndex.Open ? "positiveColor" : "negativeColor")">
+                @(CalcMarketDayPercent(MarketIndex.Close, MarketIndex.Open))
+            </span>
+        </div>
+    </div>
 
-    <p class="@(MarketIndex.Close > MarketIndex.Open ? "positiveColor" : "negativeColor")"> @(CalcMarketDayPercent(MarketIndex.Close, MarketIndex.Open)) </p>
-    <p> Open: @MarketIndex.Open </p>
-    <p> High: @MarketIndex.High </p>
-    <p> Low: @MarketIndex.Low </p>
 
+    <p class="highlowText">
+        Highest:
+        <span class="textBold @(MarketIndex.High > MarketIndex.Open ? "positiveColor" : "negativeColor")">
+            @(CalcMarketDayPercent(MarketIndex.High, MarketIndex.Open))
+        </span>
+    </p>
+    <p class="highlowText">
+        Lowest:
+        <span class="textBold @(MarketIndex.Low > MarketIndex.Open ? "positiveColor" : "negativeColor")">
+            @(CalcMarketDayPercent(MarketIndex.Low, MarketIndex.Open))
+        </span>
+    </p>
 </div>
 
 @code {
@@ -18,15 +41,16 @@
 
     protected override async Task OnInitializedAsync()
     {
+
     } 
 
 
-    private double CalcMarketDayPercent(double close, double open){
+    private string CalcMarketDayPercent(double close, double open){
         double change = close / open;
         double changePercent = 1 - change;
         double percentage = changePercent * -100;
 
         // Round result to 3 decimals
-        return Math.Round(percentage, 3);
+        return Math.Round(percentage, 3) + " %";
     }
 }

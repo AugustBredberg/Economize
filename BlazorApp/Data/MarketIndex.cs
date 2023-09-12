@@ -25,6 +25,14 @@ namespace BlazorApp.Data
         [JsonPropertyName("from")]
         public DateTime From { get; set; }
 
+        public bool Success { get; set; }
+
+        public MarketIndex()
+        {
+            this.MarketIndexTicker = string.Empty;
+            this.Success = false;
+        }
+
         /*
          {
             "status": "OK",
@@ -68,8 +76,8 @@ namespace BlazorApp.Data
                 MarketIndexTicker = this.ticker,
                 Open = result.o,
                 Close = result.c,
-                High = result.c,
-                Low = result.h
+                High = result.h,
+                Low = result.l
             };
         }
     }
