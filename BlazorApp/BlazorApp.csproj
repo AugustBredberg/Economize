@@ -8,10 +8,13 @@
 
   <ItemGroup>
     <None Remove="Shared\Tiles\IndiceTile.razor.css" />
+    <None Remove="Shared\Tiles\InvestingCalcTile.razor.css" />
+    <None Remove="Shared\Tiles\MarketIndexTile - Copy.razor.css" />
     <None Remove="Shared\Tiles\MarketIndexTile.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Shared\Tiles\InvestingCalcTile.razor.css" />
     <Content Include="Shared\Tiles\MarketIndexTile.razor.css" />
   </ItemGroup>
 

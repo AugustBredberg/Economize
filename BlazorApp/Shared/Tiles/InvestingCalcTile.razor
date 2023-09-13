@@ -1,0 +1,156 @@
+﻿@using BlazorApp.Data;
+@using System.Text.RegularExpressions;
+@using System.Globalization
+
+<div class="tile" style="max-width: 700px;">
+
+    <!-- Total -->
+    <div style="width: 100%">
+        <h1 style="color: limegreen; text-align: center; "> @calculatedSavings kr </h1>
+        <p style="text-align: center; "> <span style="font-weight: 600;">@totalReturn kr </span>  of which is the total return </p>
+    </div>
+
+    <!-- Monthly savings amount -->
+    <p style="margin: 0px;">Monthly savings</p>
+    <div class="Row" style="width: auto; padding-bottom: 1rem;">
+        <div class="Column" style="width: 80%">
+            <input class="slider" type="range" min="0" max="20000" step="100" @oninput="@onChange_MonthlySavings" @bind="@monthlySavingsValue">
+        </div>
+        <div class="Column SEK" style="width: 100%; text-align: right">
+            <input type="number" value="@monthlySavingsValue" style="width: 100%;" @oninput="@onChange_MonthlySavings" />
+        </div>
+    </div>
+
+    <!-- Initial savings amount -->
+    <p style="margin: 0px;">Starting amount</p>
+    <div class="Row" style="width: auto; padding-bottom: 1rem;">
+        <div class="Column" style="width: 80%">
+            <input class="slider" type="range" min="0" max="1000000" step="5000" @oninput="@onChange_InitialSavings" @bind="@initialSavingsValue">
+        </div>
+        <div class="Column SEK" style="width: 100%; text-align: right">
+            <input type="number" value="@initialSavingsValue" style="width: 100%;" @oninput="@onChange_InitialSavings" />
+        </div>
+    </div>
+
+
+    <!-- Years amount -->
+    <p style="margin: 0px;">Years of saving</p>
+    <div class="Row" style="width: auto; padding-bottom: 1rem;">
+        <div class="Column" style="width: 80%">
+            <input class="slider" type="range" min="0" max="30" step="1" @oninput="@onChange_Years" @bind="@yearsValue">
+        </div>
+        <div class="Column YEARS" style="width: 100%; text-align: right">
+            <input type="number" value="@yearsValue" style="width: 100%;" @oninput="@onChange_Years" />
+        </div>
+    </div>
+
+    <!-- Return rate -->
+    <p style="margin: 0px; text-align: center">Return rate</p>
+    <div style="width: 100%; display: flex; justify-content: center">
+        <div class="PERCENT">
+            <input type="number" style="width: 100%; max-width: 50px;" @oninput="@onChange_ReturnRate" @bind="@returnRateValue"/>
+        </div>
+    </div>
+    <p style="margin: 0px; font-size: 10px; text-align: center"> (Historically, the market has returned approximately 7 % on investments yearly)</p>
+</div>
+
+
+@code {
+    private string calculatedSavings { get; set; }
+    private string totalReturn { get; set; }
+
+    private long monthlySavingsValue { get; set; } = 5000;
+    private long initialSavingsValue { get; set; } = 50000;
+    private long yearsValue { get; set; } = 5;
+    private long returnRateValue { get; set; } = 7;
+
+    private void onChange_MonthlySavings(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedMonthlySavingsValue))
+        {
+            monthlySavingsValue = parsedMonthlySavingsValue;
+            calculateNewTotal();
+        }
+        else Console.WriteLine("Return rate could not be parsed.");
+    }
+    private void onChange_InitialSavings(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedInitialSavingsValue))
+        {
+            initialSavingsValue = parsedInitialSavingsValue;
+            calculateNewTotal();
+        }
+        else Console.WriteLine("Return rate could not be parsed.");
+    }
+    private void onChange_Years(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedYearsValue))
+        {
+            yearsValue = parsedYearsValue;
+            calculateNewTotal();
+        }
+        else Console.WriteLine("Return rate could not be parsed.");
+    }
+    private void onChange_ReturnRate(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedReturnRate))
+        {
+            returnRateValue = parsedReturnRate;
+            calculateNewTotal();
+        }
+        else Console.WriteLine("Return rate could not be parsed.");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        calculateNewTotal();
+    }
+
+    private string numberWithSpaces(long number)
+    {
+        var nfi = new NumberFormatInfo();
+        nfi.NumberGroupSeparator = " "; // set the group separator to a space
+
+        var numberWithSpacesString = number.ToString("N2", nfi);
+
+        // Find and remove the trailing .00
+        var dotIndex = numberWithSpacesString.IndexOf('.');
+        numberWithSpacesString = numberWithSpacesString.Substring(0, dotIndex);
+
+        return numberWithSpacesString;
+    }
+
+    private void calculateNewTotal(){
+
+        double currentTotal = (double)initialSavingsValue;
+
+        double returnPerYear = 1.0 + ((double)returnRateValue / 100); // 1.07 for 7 %
+        var savedEachYear = monthlySavingsValue * 12; // Total saved each year
+
+        for(var i=1; i <= yearsValue; i++){
+            // Add this years savings to total
+            currentTotal += savedEachYear;
+            // Add return 
+            currentTotal *= returnPerYear;
+
+            // Round to closest thousand 
+            currentTotal = currentTotal % 1000 >= 500 ? currentTotal + 1000 - currentTotal % 1000 : currentTotal - currentTotal % 1000;
+        }
+
+        // Summarize and format total savings
+        var totalAsInt = Convert.ToInt64(currentTotal);
+        calculatedSavings = numberWithSpaces(totalAsInt);
+
+        // Summarize and format how much of the total savings that are returns
+        var totalReturnAsDouble = totalAsInt - ((double)initialSavingsValue + savedEachYear * yearsValue);
+        totalReturnAsDouble = totalReturnAsDouble % 1000 >= 500 ? totalReturnAsDouble + 1000 - totalReturnAsDouble % 1000 : totalReturnAsDouble - totalReturnAsDouble % 1000;
+        var totalReturnAsInt = Convert.ToInt64(totalReturnAsDouble);
+        totalReturn = numberWithSpaces(totalReturnAsInt);
+
+        StateHasChanged();
+    }
+}
