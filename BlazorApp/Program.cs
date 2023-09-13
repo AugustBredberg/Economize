@@ -1,4 +1,5 @@
 using BlazorApp.Data;
+using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 
@@ -10,7 +11,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<MarketIndexService>();
 builder.Services.AddMemoryCache();
-
+builder.Services.AddBlazoredLocalStorage();
 
 var app = builder.Build();
 

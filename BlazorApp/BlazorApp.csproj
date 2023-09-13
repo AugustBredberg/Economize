@@ -18,4 +18,8 @@
     <Content Include="Shared\Tiles\MarketIndexTile.razor.css" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.4.0" />
+  </ItemGroup>
+
 </Project>

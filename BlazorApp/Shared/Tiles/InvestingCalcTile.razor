@@ -1,8 +1,9 @@
 ﻿@using BlazorApp.Data;
 @using System.Text.RegularExpressions;
 @using System.Globalization
+@inject ILocalStorageService _localstorage;
 
-<div class="tile" style="max-width: 700px;">
+<div class="tile" style="max-width: 700px; min-width: 40vw;">
 
     <!-- Total -->
     <div style="width: 100%">
@@ -71,6 +72,9 @@
         {
             monthlySavingsValue = parsedMonthlySavingsValue;
             calculateNewTotal();
+
+            // Cache new value
+            _localstorage.SetItemAsStringAsync("InvestmentCalc_MonthlySavings", parsedMonthlySavingsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -81,6 +85,9 @@
         {
             initialSavingsValue = parsedInitialSavingsValue;
             calculateNewTotal();
+
+            // Cache new value
+            _localstorage.SetItemAsStringAsync("InvestmentCalc_InitialSavings", parsedInitialSavingsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -91,6 +98,9 @@
         {
             yearsValue = parsedYearsValue;
             calculateNewTotal();
+
+            // Cache new value
+            _localstorage.SetItemAsStringAsync("InvestmentCalc_Years", parsedYearsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -101,13 +111,38 @@
         {
             returnRateValue = parsedReturnRate;
             calculateNewTotal();
+
+            // Cache new value
+            _localstorage.SetItemAsStringAsync("InvestmentCalc_ReturnRate", parsedReturnRate.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
 
     protected override async Task OnInitializedAsync()
     {
-        calculateNewTotal();
+
+    }
+
+    private bool firstRender = true;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Read cached data if it exists
+            var cachedMonthlySavings = await _localstorage.GetItemAsStringAsync("InvestmentCalc_MonthlySavings");
+            var cachedInitialSavings = await _localstorage.GetItemAsStringAsync("InvestmentCalc_InitialSavings");
+            var cachedYears = await _localstorage.GetItemAsStringAsync("InvestmentCalc_Years");
+            var cachedReturnRate = await _localstorage.GetItemAsStringAsync("InvestmentCalc_ReturnRate");
+
+
+            if (cachedMonthlySavings is not null) monthlySavingsValue = Convert.ToInt64(cachedMonthlySavings);
+            if (cachedInitialSavings is not null) initialSavingsValue = Convert.ToInt64(cachedInitialSavings);
+            if (cachedYears is not null) yearsValue = Convert.ToInt64(cachedYears);
+            if (cachedReturnRate is not null) returnRateValue = Convert.ToInt64(cachedReturnRate);
+
+            calculateNewTotal();
+            firstRender = false;
+        }
     }
 
     private string numberWithSpaces(long number)

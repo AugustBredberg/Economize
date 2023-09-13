@@ -9,7 +9,7 @@
 <h1>Market Indices </h1>
 
 <p>Yesterday's (or latest open market day's) market indices</p>
-
+<div>
 @if (indices == null)
 {
     <p><em>Loading...</em></p>
@@ -18,11 +18,12 @@ else
 {
     @foreach (var index in indices)
     {
-        <MarketIndexTile MarketIndex=index ></MarketIndexTile>
+        <div style="margin: 15px;">
+            <MarketIndexTile MarketIndex=index ></MarketIndexTile>
+        </div>
     }
 }
-
-<InvestingCalcTile> </InvestingCalcTile>
+</div>
 
 @code {
         
