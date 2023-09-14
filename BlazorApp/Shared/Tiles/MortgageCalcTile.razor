@@ -1,0 +1,193 @@
+﻿@using BlazorApp.Data;
+@using System.Text.RegularExpressions;
+@using System.Globalization;
+@inject ILocalStorageService _localstorage;
+@inject NumberFormatService NumberFormatService;
+
+<div class="tile" style="max-width: 700px; min-width: 40vw;">
+
+    <!-- Total -->
+    <div style="width: 100%">
+        <h1 style="color: limegreen; text-align: center; "> @calculatedSavings kr </h1>
+        <p style="text-align: center; "> <span style="font-weight: 600;">@totalReturn kr </span>  of which is the total return </p>
+    </div>
+
+
+    <div class="Row" style="width: auto; border-spacing: 10px 0px;">
+        <div class="Column ">
+            <!-- Home value amount -->
+            <p style="margin: 0px;">Home value</p>
+            <div class="SEKgreen " style="width: 100%; text-align: right">
+                <input class="homeValueInput greenTxt" type="number" value="@homeValue" @oninput="@onChange_HomeValue" />
+            </div>
+
+            <!-- Down payment amount -->
+            <p style="margin: 0px;">Down payment (@downPaymentPercent %)</p>
+            <div class="SEKgreen " style="width: 100%; text-align: right">
+                <input class="downPaymentInput greenTxt" type="number" value="@downPaymentValue" @oninput="@onChange_DownPaymentValue" />
+            </div>
+            <input class="slider" type="range" min="0" max="100" step="1" @oninput="@onChange_DownPaymentPercent" @bind="@downPaymentPercent">
+        </div>
+        <div class="Column">
+            <!-- Loan amount -->
+            Loan Amount: @(homeValue-downPaymentValue) kr
+        </div>
+    </div>
+    <div class="Row" style="width: 100%; padding-bottom: 1rem;">
+        <div class="Column" style="width: 80%">
+        </div>
+    </div>
+
+    <!-- Interest and amortization rate -->
+    <div class="Row" style="width: 100%; padding-bottom: 1rem;">
+        <div class="Column" style="width: 80%">
+            Interest Rate: @interestRate %
+            <input class="slider" type="range" min="1" max="10" step="0.05" value="4"
+            @oninput="@((ChangeEventArgs e) => interestRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture))">
+        </div>
+        <div class="Column" style="width: 80%">
+            Amortization rate: @amortizationRate %
+            <input class="slider" type="range" min="0" max="4" step="0.1" value="2"
+            @oninput="@((ChangeEventArgs e) => amortizationRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture))">
+        </div>
+    </div>
+    <!--
+    <div class="Row" style="width: auto; border-spacing: 10px 0px;">
+        <div class="Column PERCENTred " style="width: 100%; text-align: right; color: orangered">
+            <input class="percentInput" type="number" value="@downPaymentValue" @oninput="@onChange_DownPaymentValue" />
+        </div>
+    </div>
+    -->
+    <!-- Save settings button -->
+    <div style="width: 100%; display: flex; justify-content: center; padding-top: 30px">
+        <a class="saveButton" @onclick="@SaveInvestmentSettings">
+            Save <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+        </a>
+    </div>
+</div>
+
+
+@code {
+    private string calculatedSavings { get; set; }
+    private string totalReturn { get; set; }
+
+    private long homeValue { get; set; } = 3500000;
+    private int downPaymentPercent { get; set; } = 15;
+    private long downPaymentValue { get; set; }
+
+    private double interestRate { get; set; } = 4;
+    private double amortizationRate { get; set; } = 2;
+
+    private void onChange_HomeValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedHomeValue))
+        {
+            homeValue = parsedHomeValue;
+
+            // Recalculate new Down payment value based on selected percentage
+            downPaymentValue = Convert.ToInt64(homeValue * downPaymentPercent / 100);
+        }
+        else Console.WriteLine("Return rate could not be parsed.");
+    }
+    private void onChange_DownPaymentPercent(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int32.TryParse(args.Value.ToString(), out int parsedDownPaymentPercent))
+        {
+            downPaymentPercent = parsedDownPaymentPercent;
+
+            // Calculate down payment value from selected percentage
+            double percentage = (double)downPaymentPercent / 100.0;
+            var downPaymentFromPercentage = homeValue * percentage;
+
+            // Round result to thousands
+            downPaymentFromPercentage = NumberFormatService.RoundToThousands(downPaymentFromPercentage);
+
+            downPaymentValue = Convert.ToInt64(downPaymentFromPercentage);
+
+
+
+            calculateNewTotal();
+        }
+        else Console.WriteLine("Down payment percent could not be parsed.");
+    }
+    private void onChange_DownPaymentValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int64.TryParse(args.Value.ToString(), out long parsedDownPaymentValue))
+        {
+            downPaymentValue = parsedDownPaymentValue;
+
+            // Calculate what percentage this value corresponds to
+            var newPercentageDouble = (double)downPaymentValue / (double)homeValue; // 5 % = 0.05
+
+            // Convert percentage to int
+            var newPercentage = Convert.ToInt32(newPercentageDouble * 100);
+
+            // Set new percentage
+            downPaymentPercent = newPercentage;
+        }
+        else Console.WriteLine("Down payment value could not be parsed.");
+    }
+
+    private void onChange_InterestRate(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        var parsedInterestRate = double.Parse(args.Value.ToString() ?? "1", CultureInfo.InvariantCulture); //Convert.ToDouble(args.Value);
+        Console.WriteLine(parsedInterestRate);
+        //interestRate = parsedInterestRate;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Calculate down payment value from selected percentage
+        double percentage = (double)downPaymentPercent / 100.0;
+        var downPaymentFromPercentage = homeValue * percentage;
+
+        // Round result to thousands
+        downPaymentFromPercentage = NumberFormatService.RoundToThousands(downPaymentFromPercentage);
+
+        downPaymentValue = Convert.ToInt64(downPaymentFromPercentage);
+    }
+
+    private bool firstRender = true;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Read cached data if it exists
+            var cachedHomeValue = await _localstorage.GetItemAsStringAsync("MortgageCalc_HomeValue");
+
+            if (cachedHomeValue is not null) homeValue = Convert.ToInt64(cachedHomeValue);
+
+            calculateNewTotal();
+            firstRender = false;
+        }
+    }
+
+    private string numberWithSpaces(long number)
+    {
+        var nfi = new NumberFormatInfo();
+        nfi.NumberGroupSeparator = " "; // set the group separator to a space
+
+        var numberWithSpacesString = number.ToString("N2", nfi);
+
+        // Find and remove the trailing .00
+        var dotIndex = numberWithSpacesString.IndexOf('.');
+        numberWithSpacesString = numberWithSpacesString.Substring(0, dotIndex);
+
+        return numberWithSpacesString;
+    }
+
+    private void calculateNewTotal()
+    {
+
+    }
+
+    private void SaveInvestmentSettings()
+    {
+        // Cache values
+        _localstorage.SetItemAsStringAsync("MortgageCalc_HomeValue", homeValue.ToString());
+    }
+}

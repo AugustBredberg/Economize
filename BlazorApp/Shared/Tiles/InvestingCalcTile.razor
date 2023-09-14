@@ -2,6 +2,7 @@
 @using System.Text.RegularExpressions;
 @using System.Globalization
 @inject ILocalStorageService _localstorage;
+@inject NumberFormatService NumberFormatService;
 
 <div class="tile" style="max-width: 700px; min-width: 40vw;">
     
@@ -79,7 +80,6 @@
         {
             monthlySavingsValue = parsedMonthlySavingsValue;
             calculateNewTotal();
-
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -90,7 +90,6 @@
         {
             initialSavingsValue = parsedInitialSavingsValue;
             calculateNewTotal();
-
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -101,7 +100,6 @@
         {
             yearsValue = parsedYearsValue;
             calculateNewTotal();
-
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -112,7 +110,6 @@
         {
             returnRateValue = parsedReturnRate;
             calculateNewTotal();
-
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -144,20 +141,6 @@
         }
     }
 
-    private string numberWithSpaces(long number)
-    {
-        var nfi = new NumberFormatInfo();
-        nfi.NumberGroupSeparator = " "; // set the group separator to a space
-
-        var numberWithSpacesString = number.ToString("N2", nfi);
-
-        // Find and remove the trailing .00
-        var dotIndex = numberWithSpacesString.IndexOf('.');
-        numberWithSpacesString = numberWithSpacesString.Substring(0, dotIndex);
-
-        return numberWithSpacesString;
-    }
-
     private void calculateNewTotal(){
 
         double currentTotal = (double)initialSavingsValue;
@@ -172,18 +155,22 @@
             currentTotal *= returnPerYear;
 
             // Round to closest thousand 
-            currentTotal = currentTotal % 1000 >= 500 ? currentTotal + 1000 - currentTotal % 1000 : currentTotal - currentTotal % 1000;
+            currentTotal = NumberFormatService.RoundToThousands(currentTotal);
         }
 
         // Summarize and format total savings
         var totalAsInt = Convert.ToInt64(currentTotal);
-        calculatedSavings = numberWithSpaces(totalAsInt);
+
+        calculatedSavings = NumberFormatService.NumberWithSpaces(totalAsInt);
 
         // Summarize and format how much of the total savings that are returns
         var totalReturnAsDouble = totalAsInt - ((double)initialSavingsValue + savedEachYear * yearsValue);
-        totalReturnAsDouble = totalReturnAsDouble % 1000 >= 500 ? totalReturnAsDouble + 1000 - totalReturnAsDouble % 1000 : totalReturnAsDouble - totalReturnAsDouble % 1000;
+
+        // Round to thousands 
+        totalReturnAsDouble = NumberFormatService.RoundToThousands(totalReturnAsDouble);
         var totalReturnAsInt = Convert.ToInt64(totalReturnAsDouble);
-        totalReturn = numberWithSpaces(totalReturnAsInt);
+
+        totalReturn = NumberFormatService.NumberWithSpaces(totalReturnAsInt);
 
         StateHasChanged();
     }

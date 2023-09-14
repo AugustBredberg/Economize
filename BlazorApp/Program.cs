@@ -10,6 +10,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<MarketIndexService>();
+builder.Services.AddSingleton<NumberFormatService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddBlazoredLocalStorage();
 
