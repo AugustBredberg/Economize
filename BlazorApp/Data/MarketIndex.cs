@@ -68,8 +68,8 @@ namespace BlazorApp.Data
         public int count { get; set; }
 
         public MarketIndex ConvertToMarketIndex()
-        {
-            PreviousCloseMarketIndexResponseResult result = this.results[0] ?? new PreviousCloseMarketIndexResponseResult();
+        {            
+            PreviousCloseMarketIndexResponseResult result = this.results?[0] ?? new PreviousCloseMarketIndexResponseResult();
 
             return new MarketIndex
             {

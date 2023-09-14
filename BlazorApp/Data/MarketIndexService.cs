@@ -23,7 +23,8 @@ namespace BlazorApp.Data
         {
             {"I:OMXS30", "OMX"},
             {"I:NDX", "NDX"},
-            {"I:SPX", "SPX"}
+            {"I:SPX", "SPX"},
+            {"I:NI225", "NI225"}
         };
 
 
@@ -60,7 +61,7 @@ namespace BlazorApp.Data
                     using var responseStream = await response.Content.ReadAsStreamAsync();
                     var previousCloseMarketIndexResponse = await JsonSerializer.DeserializeAsync<PreviousCloseMarketIndexResponse>(responseStream);
 
-                    if (previousCloseMarketIndexResponse is null) throw new Exception("Deserialization failed");
+                    if (previousCloseMarketIndexResponse is null || previousCloseMarketIndexResponse.results is null) throw new Exception("Deserialization failed");
                     else
                     {
                         marketIndex = previousCloseMarketIndexResponse.ConvertToMarketIndex();

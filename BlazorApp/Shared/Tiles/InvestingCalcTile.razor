@@ -4,7 +4,7 @@
 @inject ILocalStorageService _localstorage;
 
 <div class="tile" style="max-width: 700px; min-width: 40vw;">
-
+    
     <!-- Total -->
     <div style="width: 100%">
         <h1 style="color: limegreen; text-align: center; "> @calculatedSavings kr </h1>
@@ -53,6 +53,13 @@
         </div>
     </div>
     <p style="margin: 0px; font-size: 10px; text-align: center"> (Historically, the market has returned approximately 7 % on investments yearly)</p>
+    
+    <!-- Save settings button -->
+    <div style="width: 100%; display: flex; justify-content: center; padding-top: 30px">
+        <a class="saveButton" @onclick="@SaveInvestmentSettings">
+            Save <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+        </a>
+    </div>
 </div>
 
 
@@ -73,8 +80,6 @@
             monthlySavingsValue = parsedMonthlySavingsValue;
             calculateNewTotal();
 
-            // Cache new value
-            _localstorage.SetItemAsStringAsync("InvestmentCalc_MonthlySavings", parsedMonthlySavingsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -86,8 +91,6 @@
             initialSavingsValue = parsedInitialSavingsValue;
             calculateNewTotal();
 
-            // Cache new value
-            _localstorage.SetItemAsStringAsync("InvestmentCalc_InitialSavings", parsedInitialSavingsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -99,8 +102,6 @@
             yearsValue = parsedYearsValue;
             calculateNewTotal();
 
-            // Cache new value
-            _localstorage.SetItemAsStringAsync("InvestmentCalc_Years", parsedYearsValue.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -112,8 +113,6 @@
             returnRateValue = parsedReturnRate;
             calculateNewTotal();
 
-            // Cache new value
-            _localstorage.SetItemAsStringAsync("InvestmentCalc_ReturnRate", parsedReturnRate.ToString());
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -187,5 +186,14 @@
         totalReturn = numberWithSpaces(totalReturnAsInt);
 
         StateHasChanged();
+    }
+
+    private void SaveInvestmentSettings()
+    {
+        // Cache values
+        _localstorage.SetItemAsStringAsync("InvestmentCalc_MonthlySavings", monthlySavingsValue.ToString());
+        _localstorage.SetItemAsStringAsync("InvestmentCalc_InitialSavings", initialSavingsValue.ToString());
+        _localstorage.SetItemAsStringAsync("InvestmentCalc_Years", yearsValue.ToString());
+        _localstorage.SetItemAsStringAsync("InvestmentCalc_ReturnRate", returnRateValue.ToString());
     }
 }

@@ -36,11 +36,13 @@ else
         var OMXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync();
         var NDXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync("I:NDX");
         var SPXIndex = await MarketIndexService.GetMarketIndexPreviousCloseAsync("I:SPX");
+        var NI225Index = await MarketIndexService.GetMarketIndexPreviousCloseAsync("I:NI225");
 
         indices = new List<MarketIndex>();
         if (OMXIndex is not null && OMXIndex.Success) indices.Add(OMXIndex);
         if (NDXIndex is not null && NDXIndex.Success) indices.Add(NDXIndex);
         if (SPXIndex is not null && SPXIndex.Success) indices.Add(SPXIndex);
+        if (NI225Index is not null && NI225Index.Success) indices.Add(NI225Index);
     }
 
 }
