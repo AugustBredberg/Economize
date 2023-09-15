@@ -4,33 +4,28 @@
 @inject ILocalStorageService _localstorage;
 @inject NumberFormatService NumberFormatService;
 
+<!-- All expenses -->
 <div class="tile" style="max-width: 700px; min-width: 40vw;">
 
-    <!-- Total -->
+    <!-- Loan -->
     <div style="width: 100%">
-        <h1 style="color: limegreen; text-align: center; "> @calculatedSavings kr </h1>
-        <p style="text-align: center; "> <span style="font-weight: 600;">@totalReturn kr </span>  of which is the total return </p>
+        <h2 style="text-align: center;"> Loan </h2>
     </div>
 
-
-    <div class="Row" style="width: auto; border-spacing: 10px 0px;">
-        <div class="Column ">
+    <div class="Row" style="border-spacing: 10px 0px;">
+        <div class="Column " style="width: 50%">
             <!-- Home value amount -->
             <p style="margin: 0px;">Home value</p>
-            <div class="SEKgreen " style="width: 100%; text-align: right">
+            <div class="SEKgreen " style="width: 100%;">
                 <input class="homeValueInput greenTxt" type="number" value="@homeValue" @oninput="@onChange_HomeValue" />
             </div>
 
             <!-- Down payment amount -->
             <p style="margin: 0px;">Down payment (@downPaymentPercent %)</p>
-            <div class="SEKgreen " style="width: 100%; text-align: right">
+            <div class="SEKgreen " style="width: 100%;">
                 <input class="downPaymentInput greenTxt" type="number" value="@downPaymentValue" @oninput="@onChange_DownPaymentValue" />
             </div>
             <input class="slider" type="range" min="0" max="100" step="1" @oninput="@onChange_DownPaymentPercent" @bind="@downPaymentPercent">
-        </div>
-        <div class="Column">
-            <!-- Loan amount -->
-            Loan Amount: @(homeValue-downPaymentValue) kr
         </div>
     </div>
     <div class="Row" style="width: 100%; padding-bottom: 1rem;">
@@ -43,33 +38,114 @@
         <div class="Column" style="width: 80%">
             Interest Rate: @interestRate %
             <input class="slider" type="range" min="1" max="10" step="0.05" value="4"
-            @oninput="@((ChangeEventArgs e) => interestRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture))">
+            @oninput="@((ChangeEventArgs e) => {
+                interestRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture);
+                recalculateCosts();
+            })">
         </div>
         <div class="Column" style="width: 80%">
             Amortization rate: @amortizationRate %
             <input class="slider" type="range" min="0" max="4" step="0.1" value="2"
-            @oninput="@((ChangeEventArgs e) => amortizationRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture))">
+            @oninput="@((ChangeEventArgs e) => {
+                amortizationRate = double.Parse((string) e.Value, CultureInfo.InvariantCulture);
+                recalculateCosts();
+            })">
         </div>
     </div>
-    <!--
-    <div class="Row" style="width: auto; border-spacing: 10px 0px;">
-        <div class="Column PERCENTred " style="width: 100%; text-align: right; color: orangered">
-            <input class="percentInput" type="number" value="@downPaymentValue" @oninput="@onChange_DownPaymentValue" />
+
+    <!-- Loan term
+    <p style="margin: 0px; text-align: center">Loan term</p>
+    <div style="width: 100%; display: flex; justify-content: center">
+        <div class="YEARSgreen">
+            <input type="number" class="loanTermInput" @bind="@loanTermYears" />
         </div>
     </div>
+    <p style="margin: 0px; font-size: 10px; text-align: center"> (The loan's repayment period)</p>
     -->
+    <!-- Monthly costs -->
+    <hr style="margin: 20px;" />
+    <div style="width: 100%">
+        <h2 style="text-align: center;"> Monthly costs </h2>
+    </div>
+
+    <div class="Row" style="width: 100%; padding-bottom: 1rem;">
+        <!-- Property tax -->
+        <div class="SEKgreenYear " style="width: 100%;">
+            <p style="margin: 0px;">Property tax </p>
+            <input class="homeValueInput greenTxt" type="number" value="@propertyTaxYearly" @oninput="@onChange_PropertyTaxValue" />
+        </div>
+
+        <!-- Home insurance -->
+        <div class="SEKgreenYear " style="width: 100%;">
+            <p style="margin: 0px;"> Home Insurance </p>
+            <input class="homeValueInput greenTxt" type="number" value="@homeInsuranceYearly" @oninput="@onChange_HomeInsuranceValue" />
+        </div>
+
+        <!-- Other (HOA / housing cooperative expenses) -->
+        <div class="SEKgreenMonth " style="width: 100%;">
+            <p style="margin: 0px;">Other (HOA / housing cooperative expenses) </p>
+            <input class="homeValueInput greenTxt" type="number" value="@otherMonthly" @oninput="@onChange_OtherMonthlyValue" />
+        </div>
+    </div>
+
     <!-- Save settings button -->
     <div style="width: 100%; display: flex; justify-content: center; padding-top: 30px">
         <a class="saveButton" @onclick="@SaveInvestmentSettings">
-            Save <span class="oi oi-cloud-upload" aria-hidden="true"></span>
+            Save settings <span class="oi oi-cloud-upload" aria-hidden="true"></span>
         </a>
     </div>
 </div>
 
+<!-- Summary -->
+<div class="tile" style="max-width: 700px; min-width: 40vw;">
+    <div style="width: 100%; text-align: center;">
+        <p style="font-size: 1rem; margin: 0px;">
+            Money loaned
+        </p>
+        <p class="loanAmountTxt" style="margin-top: 0px;"> @(homeValue - downPaymentValue) kr </p>
+    </div>
+
+
+
+    <h3>Monthly costs</h3>
+    <p style="font-weight: 600">
+        Total monthly cost: @(monthlyInterest + monthlyAmortization + monthlyPropertyTax + monthlyInsurance + otherMonthly)
+    </p>
+    <p>
+        Interest: @monthlyInterest kr
+    </p>
+    <p>
+        Amortization: @monthlyAmortization kr
+    </p>
+    <p>
+        Property tax: @monthlyPropertyTax kr
+    </p>
+    <p>
+        Home Insurance: @monthlyInsurance kr
+    </p>
+    <p>
+        Other: @otherMonthly kr
+    </p>
+
+    <!--
+    <h3>Total loan expenses (after @loanTermYears years)</h3>
+    <p>
+        Total interest payed:
+    </p>
+    <p>
+        Total tax payed:
+    </p>
+    <p>
+        Total home insurance payed:
+    </p>
+    <p>
+        Total cost:
+    </p>
+    -->
+</div>
+
 
 @code {
-    private string calculatedSavings { get; set; }
-    private string totalReturn { get; set; }
 
     private long homeValue { get; set; } = 3500000;
     private int downPaymentPercent { get; set; } = 15;
@@ -77,6 +153,17 @@
 
     private double interestRate { get; set; } = 4;
     private double amortizationRate { get; set; } = 2;
+    //private int loanTermYears { get; set; } = 30;
+
+    private int propertyTaxYearly { get; set; } = 0;
+    private int homeInsuranceYearly { get; set; } = 0;
+    private int otherMonthly { get; set; } = 0;
+
+    // Loan cost summary variables
+    private int monthlyInterest { get; set; }
+    private int monthlyAmortization { get; set; }
+    private int monthlyPropertyTax { get; set; }
+    private int monthlyInsurance { get; set; }
 
     private void onChange_HomeValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
@@ -87,6 +174,7 @@
 
             // Recalculate new Down payment value based on selected percentage
             downPaymentValue = Convert.ToInt64(homeValue * downPaymentPercent / 100);
+            recalculateCosts();
         }
         else Console.WriteLine("Return rate could not be parsed.");
     }
@@ -106,9 +194,7 @@
 
             downPaymentValue = Convert.ToInt64(downPaymentFromPercentage);
 
-
-
-            calculateNewTotal();
+            recalculateCosts();
         }
         else Console.WriteLine("Down payment percent could not be parsed.");
     }
@@ -127,17 +213,78 @@
 
             // Set new percentage
             downPaymentPercent = newPercentage;
+
+            recalculateCosts();
         }
         else Console.WriteLine("Down payment value could not be parsed.");
     }
-
-    private void onChange_InterestRate(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    private void onChange_PropertyTaxValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
     {
         if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
-        var parsedInterestRate = double.Parse(args.Value.ToString() ?? "1", CultureInfo.InvariantCulture); //Convert.ToDouble(args.Value);
-        Console.WriteLine(parsedInterestRate);
-        //interestRate = parsedInterestRate;
+        if (Int32.TryParse(args.Value.ToString(), out int parsedPropertyTaxValue))
+        {
+            propertyTaxYearly = parsedPropertyTaxValue;
+            recalculateCosts();
+        }
+        else Console.WriteLine("Property Tax value could not be parsed.");
     }
+    private void onChange_HomeInsuranceValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int32.TryParse(args.Value.ToString(), out int parsedHomeInsuranceValue))
+        {
+            homeInsuranceYearly = parsedHomeInsuranceValue;
+            recalculateCosts();
+        }
+        else Console.WriteLine("Home Insurance value could not be parsed.");
+    }
+    private void onChange_OtherMonthlyValue(Microsoft.AspNetCore.Components.ChangeEventArgs args)
+    {
+        if (args.Value is null || String.IsNullOrEmpty(args.Value.ToString())) return;
+        if (Int32.TryParse(args.Value.ToString(), out int parsedOtherMonthlyValue))
+        {
+            otherMonthly = parsedOtherMonthlyValue;
+            recalculateCosts();
+        }
+        else Console.WriteLine("Other Monthly Value could not be parsed.");
+    }
+
+    private void recalculateCosts()
+    {
+        calculateInterest();
+        calculateAmortization();
+        calculatePropertyTax();
+        calculateHomeInsurance();
+    }
+
+
+    private void calculateInterest()
+    {
+        double interestPercentage = (double)interestRate / 100.0;
+        double interestPerYear = (homeValue - downPaymentValue) * interestPercentage;
+
+        double interestPerMonth = interestPerYear / 12;
+        monthlyInterest = Convert.ToInt32(interestPerMonth);
+    }
+    private void calculateAmortization()
+    {
+        double amortizationPercentage = (double)amortizationRate / 100.0;
+        double amortizationPerYear = (homeValue - downPaymentValue) * amortizationPercentage;
+
+        double amortizationPerMonth = amortizationPerYear / 12;
+        monthlyAmortization = Convert.ToInt32(amortizationPerMonth);
+    }
+    private void calculatePropertyTax()
+    {
+        double propertyTaxPerMonth = (double)propertyTaxYearly / 12;
+        monthlyPropertyTax = Convert.ToInt32(propertyTaxPerMonth);
+    }
+    private void calculateHomeInsurance()
+    {
+        double insurancePerMonth = (double)homeInsuranceYearly / 12;
+        monthlyInsurance = Convert.ToInt32(insurancePerMonth);
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,11 +305,31 @@
         {
             // Read cached data if it exists
             var cachedHomeValue = await _localstorage.GetItemAsStringAsync("MortgageCalc_HomeValue");
+            var cachedDownPaymentPercent = await _localstorage.GetItemAsStringAsync("MortgageCalc_DownPaymentPercent");
+            var cachedDownPaymentValue = await _localstorage.GetItemAsStringAsync("MortgageCalc_DownPaymentValue");
 
+            var cachedInterestRate = await _localstorage.GetItemAsStringAsync("MortgageCalc_InterestRate");
+            var cachedAmortizationRate = await _localstorage.GetItemAsStringAsync("MortgageCalc_AmortizationRate");
+            
+            var cachedPropertyTaxValue = await _localstorage.GetItemAsStringAsync("MortgageCalc_PropertyTaxYearly");
+            var cachedHomeInsuranceYearly = await _localstorage.GetItemAsStringAsync("MortgageCalc_HomeInsuranceYearly");
+            var cachedOtherMonthly = await _localstorage.GetItemAsStringAsync("MortgageCalc_OtherMonthly");
+
+            
             if (cachedHomeValue is not null) homeValue = Convert.ToInt64(cachedHomeValue);
+            if (cachedDownPaymentPercent is not null) downPaymentPercent = Convert.ToInt32(cachedDownPaymentPercent);
+            if (cachedDownPaymentValue is not null) downPaymentValue = Convert.ToInt64(cachedDownPaymentValue);
 
-            calculateNewTotal();
+            if (cachedInterestRate is not null) interestRate = double.Parse((string)cachedInterestRate.Replace(',', '.'), CultureInfo.InvariantCulture);
+            if (cachedAmortizationRate is not null) amortizationRate = double.Parse((string)cachedAmortizationRate.Replace(',', '.'), CultureInfo.InvariantCulture);
+
+            if (cachedPropertyTaxValue is not null) propertyTaxYearly = Convert.ToInt32(cachedPropertyTaxValue);
+            if (cachedHomeInsuranceYearly is not null) homeInsuranceYearly = Convert.ToInt32(cachedHomeInsuranceYearly);
+            if (cachedOtherMonthly is not null) otherMonthly = Convert.ToInt32(cachedOtherMonthly);
+
+            recalculateCosts();
             firstRender = false;
+            StateHasChanged();
         }
     }
 
@@ -180,14 +347,18 @@
         return numberWithSpacesString;
     }
 
-    private void calculateNewTotal()
-    {
-
-    }
-
     private void SaveInvestmentSettings()
     {
         // Cache values
         _localstorage.SetItemAsStringAsync("MortgageCalc_HomeValue", homeValue.ToString());
+        _localstorage.SetItemAsStringAsync("MortgageCalc_DownPaymentPercent", downPaymentPercent.ToString());
+        _localstorage.SetItemAsStringAsync("MortgageCalc_DownPaymentValue", downPaymentValue.ToString());
+
+        _localstorage.SetItemAsStringAsync("MortgageCalc_InterestRate", interestRate.ToString());
+        _localstorage.SetItemAsStringAsync("MortgageCalc_AmortizationRate", amortizationRate.ToString());
+
+        _localstorage.SetItemAsStringAsync("MortgageCalc_PropertyTaxYearly", propertyTaxYearly.ToString());
+        _localstorage.SetItemAsStringAsync("MortgageCalc_HomeInsuranceYearly", homeInsuranceYearly.ToString());
+        _localstorage.SetItemAsStringAsync("MortgageCalc_OtherMonthly", otherMonthly.ToString());
     }
 }

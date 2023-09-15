@@ -3,15 +3,30 @@
 .homeValueInput {
     border: none;
     font-size: 2rem;
-    width: 14rem;
+    width: 70%;
+    max-width: 11rem;
     color: limegreen;
 }
 
 .downPaymentInput {
     border: none;
     font-size: 2rem;
-    width: 14rem;
+    width: 70%;
+    max-width: 11rem;
     color: limegreen;
+}
+
+.loanTermInput {
+    font-size: 1.5rem;
+    border: none;
+    width: 100%;
+    max-width: 40px;
+    color: limegreen;
+}
+
+.loanAmountTxt {
+    font-size: 2rem;
+    color: orangered;
 }
 
 .SEKgreen::after {
@@ -20,10 +35,28 @@
     color: limegreen;
 }
 
+.SEKgreenYear::after {
+    content: 'kr / year';
+    font-size: 2rem;
+    color: limegreen;
+}
+
+.SEKgreenMonth::after {
+    content: 'kr / month';
+    font-size: 2rem;
+    color: limegreen;
+}
+
 .PERCENTred::after {
     content: '%';
     font-size: 1.3rem;
     color: orangered;
+}
+
+.YEARSgreen::after {
+    content: 'years';
+    font-size: 1.3rem;
+    color: limegreen;
 }
 
 .percentInput {
@@ -55,6 +88,16 @@
         background: limegreen;
         cursor: pointer;
         border-radius: 1rem;
+    }
+
+
+.saveButton {
+    cursor: pointer;
+    color: darkslategray;
+}
+
+    .saveButton:hover {
+        color: lightblue;
     }
 
 /* HIDE UP/DOWN ARROWS ON NUMBER INPUT */
